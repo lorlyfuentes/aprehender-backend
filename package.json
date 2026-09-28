@@ -1,0 +1,21 @@
+{
+  "name": "aprehender-backend",
+  "version": "1.0.0",
+  "description": "Backend de aprehender que permite registro e inicio de sesion de usuarios, con autenticacion por token. Esta dirigido a docentes, instituciones educativas y padres de familia",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lorlyfuentes/aprehender-backend.git"
+  },
+  "keywords": [],
+  "author": "Lorly Fuentes",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lorlyfuentes/aprehender-backend/issues"
+  },
+  "homepage": "https://github.com/lorlyfuentes/aprehender-backend#readme"
+}
