@@ -19,8 +19,10 @@
   },
   "homepage": "https://github.com/lorlyfuentes/aprehender-backend#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.4",
     "express": "^5.2.1",
+    "express-validator": "^7.3.2",
     "mongoose": "^9.10.2"
   }
 }
