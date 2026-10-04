@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 const Usuario = require("../models/Usuario");
 
+const verificarToken = require("../middlewares/verificarToken");
+
 router.post(
   "/registro",
   [
@@ -98,5 +100,27 @@ router.post(
     }
   },
 );
+
+router.get("/perfil", verificarToken, async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id).select("-contrasena");
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    if (usuario.estadoPago !== "activo") {
+      return res
+        .status(403)
+        .json({ mensaje: "Acceso denegado: el pago no está activo" });
+    }
+
+    res.status(200).json({ usuario });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ mensaje: "Error al obtener el perfil", error: error.message });
+  }
+});
 
 module.exports = router;
