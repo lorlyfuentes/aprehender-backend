@@ -32,7 +32,7 @@ router.post(
       if (usuarioExistente) {
         return res
           .status(409)
-          .json({ mensaje: "El correo ya esta registrado" });
+          .json({ mensaje: "El correo ya está registrado" });
       }
 
       const contrasenaEncriptada = await bcrypt.hash(contrasena, 10);
