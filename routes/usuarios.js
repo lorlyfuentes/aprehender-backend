@@ -109,12 +109,6 @@ router.get("/perfil", verificarToken, async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado" });
     }
 
-    if (usuario.estadoPago !== "activo") {
-      return res
-        .status(403)
-        .json({ mensaje: "Acceso denegado: el pago no está activo" });
-    }
-
     res.status(200).json({ usuario });
   } catch (error) {
     res
