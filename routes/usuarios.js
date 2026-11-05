@@ -16,7 +16,7 @@ router.post(
       .isLength({ min: 8 })
       .withMessage("La contraseña debe tener mínimo 8 caracteres"),
     body("rol")
-      .isIn(["docente", "familia", "institucion"])
+      .isIn(["docente", "familia"])
       .withMessage("El rol no es válido"),
   ],
   async (req, res) => {
@@ -107,12 +107,6 @@ router.get("/perfil", verificarToken, async (req, res) => {
 
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado" });
-    }
-
-    if (usuario.estadoPago !== "activo") {
-      return res
-        .status(403)
-        .json({ mensaje: "Acceso denegado: el pago no está activo" });
     }
 
     res.status(200).json({ usuario });
