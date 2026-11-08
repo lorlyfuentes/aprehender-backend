@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
 const Ejercicio = require("../models/Ejercicio");
+const Usuario = require("../models/Usuario");
 const verificarToken = require("../middlewares/verificarToken");
 const soloDocente = require("../middlewares/soloDocente");
 
@@ -70,5 +71,26 @@ router.post(
     }
   },
 );
+
+router.get("/", verificarToken, async (req, res) => {
+  try {
+    let filtro = {};
+
+    if (req.usuario.rol === "familia") {
+      const usuario = await Usuario.findById(req.usuario.id);
+      if (usuario.estadoPago !== "activo") {
+        filtro = { esMuestra: true };
+      }
+    }
+
+    const ejercicios = await Ejercicio.find(filtro).sort({ createdAt: -1 });
+
+    res.status(200).json({ ejercicios });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ mensaje: "Error al listar los ejercicios", error: error.message });
+  }
+});
 
 module.exports = router;
