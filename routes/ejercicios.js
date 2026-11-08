@@ -93,4 +93,29 @@ router.get("/", verificarToken, async (req, res) => {
   }
 });
 
+router.get("/:id", verificarToken, async (req, res) => {
+  try {
+    const ejercicio = await Ejercicio.findById(req.params.id);
+
+    if (!ejercicio) {
+      return res.status(404).json({ mensaje: "Ejercicio no encontrado" });
+    }
+
+    if (req.usuario.rol === "familia" && !ejercicio.esMuestra) {
+      const usuario = await Usuario.findById(req.usuario.id);
+      if (usuario.estadoPago !== "activo") {
+        return res
+          .status(403)
+          .json({ mensaje: "Este ejercicio está disponible al activar el pago" });
+      }
+    }
+
+    res.status(200).json({ ejercicio });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ mensaje: "Error al obtener el ejercicio", error: error.message });
+  }
+});
+
 module.exports = router;
