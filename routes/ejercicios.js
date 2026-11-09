@@ -177,4 +177,20 @@ router.put(
   },
 );
 
+router.delete("/:id", verificarToken, soloDocente, async (req, res) => {
+  try {
+    const ejercicio = await Ejercicio.findByIdAndDelete(req.params.id);
+
+    if (!ejercicio) {
+      return res.status(404).json({ mensaje: "Ejercicio no encontrado" });
+    }
+
+    res.status(200).json({ mensaje: "Ejercicio eliminado correctamente" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ mensaje: "Error al eliminar el ejercicio", error: error.message });
+  }
+});
+
 module.exports = router;
