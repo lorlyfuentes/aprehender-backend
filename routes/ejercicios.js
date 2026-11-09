@@ -60,12 +60,10 @@ router.post(
 
       await nuevoEjercicio.save();
 
-      res
-        .status(201)
-        .json({
-          mensaje: "Ejercicio creado correctamente",
-          ejercicio: nuevoEjercicio,
-        });
+      res.status(201).json({
+        mensaje: "Ejercicio creado correctamente",
+        ejercicio: nuevoEjercicio,
+      });
     } catch (error) {
       res
         .status(500)
@@ -91,7 +89,10 @@ router.get("/", verificarToken, async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ mensaje: "Error al listar los ejercicios", error: error.message });
+      .json({
+        mensaje: "Error al listar los ejercicios",
+        error: error.message,
+      });
   }
 });
 
@@ -108,7 +109,9 @@ router.get("/:id", verificarToken, async (req, res) => {
       if (usuario.estadoPago !== "activo") {
         return res
           .status(403)
-          .json({ mensaje: "Este ejercicio está disponible al activar el pago" });
+          .json({
+            mensaje: "Este ejercicio está disponible al activar el pago",
+          });
       }
     }
 
@@ -119,5 +122,59 @@ router.get("/:id", verificarToken, async (req, res) => {
       .json({ mensaje: "Error al obtener el ejercicio", error: error.message });
   }
 });
+
+router.put(
+  "/:id",
+  verificarToken,
+  soloDocente,
+  validarEjercicio,
+  async (req, res) => {
+    const errores = validationResult(req);
+    if (!errores.isEmpty()) {
+      return res.status(400).json({ errores: errores.array() });
+    }
+
+    try {
+      const {
+        titulo,
+        nivel,
+        consigna,
+        opciones,
+        respuestaCorrecta,
+        pista,
+        esMuestra,
+      } = req.body;
+
+      const ejercicio = await Ejercicio.findByIdAndUpdate(
+        req.params.id,
+        {
+          titulo,
+          nivel,
+          consigna,
+          opciones,
+          respuestaCorrecta,
+          pista,
+          esMuestra,
+        },
+        { returnDocument: "after", runValidators: true },
+      );
+
+      if (!ejercicio) {
+        return res.status(404).json({ mensaje: "Ejercicio no encontrado" });
+      }
+
+      res
+        .status(200)
+        .json({ mensaje: "Ejercicio actualizado correctamente", ejercicio });
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          mensaje: "Error al actualizar el ejercicio",
+          error: error.message,
+        });
+    }
+  },
+);
 
 module.exports = router;
