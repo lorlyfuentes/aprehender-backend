@@ -6,28 +6,30 @@ const Usuario = require("../models/Usuario");
 const verificarToken = require("../middlewares/verificarToken");
 const soloDocente = require("../middlewares/soloDocente");
 
+const validarEjercicio = [
+  body("titulo").notEmpty().withMessage("El título es obligatorio"),
+  body("nivel")
+    .isIn(["Exploradores", "Aventureros", "Expertos"])
+    .withMessage("El nivel no es válido"),
+  body("consigna").notEmpty().withMessage("La consigna es obligatoria"),
+  body("opciones")
+    .isArray({ min: 2 })
+    .withMessage("Debe haber mínimo 2 opciones"),
+  body("respuestaCorrecta")
+    .custom((valor, { req }) => req.body.opciones.includes(valor))
+    .withMessage("La respuesta correcta debe estar entre las opciones"),
+  body("pista").optional().isString().withMessage("La pista debe ser texto"),
+  body("esMuestra")
+    .optional()
+    .isBoolean()
+    .withMessage("esMuestra debe ser true o false"),
+];
+
 router.post(
   "/",
   verificarToken,
   soloDocente,
-  [
-    body("titulo").notEmpty().withMessage("El título es obligatorio"),
-    body("nivel")
-      .isIn(["Exploradores", "Aventureros", "Expertos"])
-      .withMessage("El nivel no es válido"),
-    body("consigna").notEmpty().withMessage("La consigna es obligatoria"),
-    body("opciones")
-      .isArray({ min: 2 })
-      .withMessage("Debe haber mínimo 2 opciones"),
-    body("respuestaCorrecta")
-      .custom((valor, { req }) => req.body.opciones.includes(valor))
-      .withMessage("La respuesta correcta debe estar entre las opciones"),
-    body("pista").optional().isString().withMessage("La pista debe ser texto"),
-    body("esMuestra")
-      .optional()
-      .isBoolean()
-      .withMessage("esMuestra debe ser true o false"),
-  ],
+  validarEjercicio,
   async (req, res) => {
     const errores = validationResult(req);
     if (!errores.isEmpty()) {
