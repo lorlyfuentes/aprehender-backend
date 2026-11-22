@@ -41,6 +41,7 @@ router.post(
         correo,
         contrasena: contrasenaEncriptada,
         rol,
+        estadoCuenta: rol === "familia" ? "activa" : "pendiente",
       });
 
       await nuevoUsuario.save();
