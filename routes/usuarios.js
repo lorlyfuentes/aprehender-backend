@@ -6,6 +6,7 @@ const { body, validationResult } = require("express-validator");
 const Usuario = require("../models/Usuario");
 
 const verificarToken = require("../middlewares/verificarToken");
+const soloAdmin = require("../middlewares/soloAdmin");
 
 router.post(
   "/registro",
@@ -121,6 +122,26 @@ router.get("/perfil", verificarToken, async (req, res) => {
     res
       .status(500)
       .json({ mensaje: "Error al obtener el perfil", error: error.message });
+  }
+});
+
+router.put("/:id/activar", verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.params.id,
+      { estadoCuenta: "activa" },
+      { returnDocument: "after" },
+    ).select("-contrasena");
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    res.status(200).json({ mensaje: "Cuenta activada correctamente", usuario });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ mensaje: "Error al activar la cuenta", error: error.message });
   }
 });
 
