@@ -39,6 +39,12 @@ const acudienteEsquema = new mongoose.Schema(
     },
     celular: { type: String, required: true },
     ciudad: { type: String, required: true },
+    autorizacion: {
+      aceptada: { type: Boolean, required: true },
+      esRepresentanteLegal: { type: Boolean, required: true },
+      version: { type: String, required: true },
+      fecha: { type: Date, required: true },
+    },
   },
   { timestamps: true },
 );
