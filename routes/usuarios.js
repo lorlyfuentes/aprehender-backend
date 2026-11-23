@@ -27,7 +27,7 @@ router.post(
       .isLength({ min: 8 })
       .withMessage("La contraseña debe tener mínimo 8 caracteres"),
     body("rol")
-      .isIn(["docente", "familia"])
+      .isIn(["docente", "familia", "terapeuta"])
       .withMessage("El rol no es válido"),
   ],
   async (req, res) => {
@@ -133,6 +133,20 @@ router.get("/perfil", verificarToken, async (req, res) => {
     res
       .status(500)
       .json({ mensaje: "Error al obtener el perfil", error: error.message });
+  }
+});
+
+router.get("/pendientes", verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const usuarios = await Usuario.find({ estadoCuenta: { $ne: "activa" } }).select(
+      "-contrasena",
+    );
+
+    res.status(200).json({ usuarios });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ mensaje: "Error al listar las cuentas pendientes", error: error.message });
   }
 });
 
