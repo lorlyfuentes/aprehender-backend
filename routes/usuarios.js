@@ -136,6 +136,20 @@ router.get("/perfil", verificarToken, async (req, res) => {
   }
 });
 
+router.get("/pendientes", verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const usuarios = await Usuario.find({ estadoCuenta: { $ne: "activa" } }).select(
+      "-contrasena",
+    );
+
+    res.status(200).json({ usuarios });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ mensaje: "Error al listar las cuentas pendientes", error: error.message });
+  }
+});
+
 router.put("/:id/activar", verificarToken, soloAdmin, async (req, res) => {
   try {
     const usuario = await Usuario.findByIdAndUpdate(
