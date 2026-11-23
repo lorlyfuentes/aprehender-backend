@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const usuariosRoutes = require('./routes/usuarios');
 const ejerciciosRoutes = require('./routes/ejercicios');
+const acudientesRoutes = require('./routes/acudientes');
 
 const app = express();
 app.use(helmet());
@@ -12,6 +13,7 @@ app.use(cors({ origin: process.env.FRONTEND_URL }));
 app.use(express.json());
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/ejercicios', ejerciciosRoutes);
+app.use('/api/acudientes', acudientesRoutes);
 
 const PORT = process.env.PORT;
 
