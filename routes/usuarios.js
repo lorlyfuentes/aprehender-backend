@@ -27,7 +27,7 @@ router.post(
       .isLength({ min: 8 })
       .withMessage("La contraseña debe tener mínimo 8 caracteres"),
     body("rol")
-      .isIn(["docente", "familia"])
+      .isIn(["docente", "familia", "terapeuta"])
       .withMessage("El rol no es válido"),
   ],
   async (req, res) => {
