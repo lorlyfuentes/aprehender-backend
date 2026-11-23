@@ -3,9 +3,20 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
+const rateLimit = require("express-rate-limit");
 const Usuario = require("../models/Usuario");
 
 const verificarToken = require("../middlewares/verificarToken");
+const soloAdmin = require("../middlewares/soloAdmin");
+
+const limiteLogin = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  skipSuccessfulRequests: true,
+  message: {
+    mensaje: "Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos",
+  },
+});
 
 router.post(
   "/registro",
@@ -41,6 +52,7 @@ router.post(
         correo,
         contrasena: contrasenaEncriptada,
         rol,
+        estadoCuenta: rol === "familia" ? "activa" : "pendiente",
       });
 
       await nuevoUsuario.save();
@@ -56,6 +68,7 @@ router.post(
 
 router.post(
   "/login",
+  limiteLogin,
   [
     body("correo").isEmail().withMessage("El correo no es válido"),
     body("contrasena").notEmpty().withMessage("La contraseña es obligatoria"),
@@ -86,6 +99,12 @@ router.post(
           .json({ mensaje: "Correo o contraseña incorrectos" });
       }
 
+      if (usuario.estadoCuenta !== "activa") {
+        return res
+          .status(403)
+          .json({ mensaje: "Tu cuenta está pendiente de activación por el administrador" });
+      }
+
       const token = jwt.sign(
         { id: usuario._id, rol: usuario.rol },
         process.env.JWT_SECRET,
@@ -114,6 +133,26 @@ router.get("/perfil", verificarToken, async (req, res) => {
     res
       .status(500)
       .json({ mensaje: "Error al obtener el perfil", error: error.message });
+  }
+});
+
+router.put("/:id/activar", verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.params.id,
+      { estadoCuenta: "activa" },
+      { returnDocument: "after" },
+    ).select("-contrasena");
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    res.status(200).json({ mensaje: "Cuenta activada correctamente", usuario });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ mensaje: "Error al activar la cuenta", error: error.message });
   }
 });
 

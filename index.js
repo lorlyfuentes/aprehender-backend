@@ -2,11 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
 const usuariosRoutes = require('./routes/usuarios');
 const ejerciciosRoutes = require('./routes/ejercicios');
 
 const app = express();
-app.use(cors());
+app.use(helmet());
+app.use(cors({ origin: process.env.FRONTEND_URL }));
 app.use(express.json());
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/ejercicios', ejerciciosRoutes);
