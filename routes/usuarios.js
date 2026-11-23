@@ -3,10 +3,20 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
+const rateLimit = require("express-rate-limit");
 const Usuario = require("../models/Usuario");
 
 const verificarToken = require("../middlewares/verificarToken");
 const soloAdmin = require("../middlewares/soloAdmin");
+
+const limiteLogin = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  skipSuccessfulRequests: true,
+  message: {
+    mensaje: "Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos",
+  },
+});
 
 router.post(
   "/registro",
@@ -58,6 +68,7 @@ router.post(
 
 router.post(
   "/login",
+  limiteLogin,
   [
     body("correo").isEmail().withMessage("El correo no es válido"),
     body("contrasena").notEmpty().withMessage("La contraseña es obligatoria"),
