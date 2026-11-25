@@ -4,7 +4,7 @@ const { body, validationResult } = require("express-validator");
 const Acudiente = require("../models/Acudiente");
 const verificarToken = require("../middlewares/verificarToken");
 const soloFamilia = require("../middlewares/soloFamilia");
-const { encriptar, hashDocumento } = require("../utils/encriptacion");
+const { encriptar, desencriptar, hashDocumento } = require("../utils/encriptacion");
 
 const VERSION_AUTORIZACION = "v1-2026-11";
 
@@ -104,6 +104,33 @@ router.post("/", verificarToken, soloFamilia, validarAcudiente, async (req, res)
     res.status(201).json({ mensaje: "Datos del acudiente guardados correctamente" });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al guardar los datos del acudiente" });
+  }
+});
+
+router.get("/mio", verificarToken, soloFamilia, async (req, res) => {
+  try {
+    const acudiente = await Acudiente.findOne({ usuario: req.usuario.id });
+
+    if (!acudiente) {
+      return res
+        .status(404)
+        .json({ mensaje: "Todavía no has registrado los datos del acudiente" });
+    }
+
+    res.status(200).json({
+      acudiente: {
+        tipoDocumento: acudiente.tipoDocumento,
+        numeroDocumento: desencriptar(acudiente.numeroDocumento),
+        nombres: desencriptar(acudiente.nombres),
+        apellidos: desencriptar(acudiente.apellidos),
+        parentesco: acudiente.parentesco,
+        celular: desencriptar(acudiente.celular),
+        ciudad: acudiente.ciudad,
+        autorizacion: acudiente.autorizacion,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al obtener los datos del acudiente" });
   }
 });
 
