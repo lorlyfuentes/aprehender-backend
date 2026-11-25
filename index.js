@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const usuariosRoutes = require('./routes/usuarios');
 const ejerciciosRoutes = require('./routes/ejercicios');
 const acudientesRoutes = require('./routes/acudientes');
+const ninosRoutes = require('./routes/ninos');
 
 const app = express();
 app.use(helmet());
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/ejercicios', ejerciciosRoutes);
 app.use('/api/acudientes', acudientesRoutes);
+app.use('/api/ninos', ninosRoutes);
 
 const PORT = process.env.PORT;
 
