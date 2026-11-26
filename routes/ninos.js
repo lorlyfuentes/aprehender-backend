@@ -5,7 +5,7 @@ const Nino = require("../models/Nino");
 const Acudiente = require("../models/Acudiente");
 const verificarToken = require("../middlewares/verificarToken");
 const soloFamilia = require("../middlewares/soloFamilia");
-const { encriptar, hashDocumento } = require("../utils/encriptacion");
+const { encriptar, desencriptar, hashDocumento } = require("../utils/encriptacion");
 
 const VERSION_AUTORIZACION = "v1-2026-11";
 const PARENTESCOS_REPRESENTANTE = ["madre", "padre", "tutor_legal"];
@@ -102,6 +102,32 @@ router.post("/", verificarToken, soloFamilia, validarNino, async (req, res) => {
       .json({ mensaje: "Niño registrado correctamente", id: nuevoNino._id });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al registrar al niño" });
+  }
+});
+
+router.get("/", verificarToken, soloFamilia, async (req, res) => {
+  try {
+    const acudiente = await Acudiente.findOne({ usuario: req.usuario.id });
+    if (!acudiente) {
+      return res.status(200).json({ ninos: [] });
+    }
+
+    const ninos = await Nino.find({ acudiente: acudiente._id }).sort({ createdAt: 1 });
+
+    const ninosLegibles = ninos.map((nino) => ({
+      id: nino._id,
+      tipoDocumento: nino.tipoDocumento,
+      numeroDocumento: desencriptar(nino.numeroDocumento),
+      nombres: desencriptar(nino.nombres),
+      apellidos: desencriptar(nino.apellidos),
+      fechaNacimiento: desencriptar(nino.fechaNacimiento),
+      grado: nino.grado,
+      colegio: nino.colegio,
+    }));
+
+    res.status(200).json({ ninos: ninosLegibles });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al obtener los niños" });
   }
 });
 
