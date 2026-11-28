@@ -5,6 +5,7 @@ const Nino = require("../models/Nino");
 const Acudiente = require("../models/Acudiente");
 const verificarToken = require("../middlewares/verificarToken");
 const soloFamilia = require("../middlewares/soloFamilia");
+const soloAdmin = require("../middlewares/soloAdmin");
 const { encriptar, desencriptar, hashDocumento } = require("../utils/encriptacion");
 
 const VERSION_AUTORIZACION = "v1-2026-11";
@@ -128,6 +129,28 @@ router.get("/", verificarToken, soloFamilia, async (req, res) => {
     res.status(200).json({ ninos: ninosLegibles });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al obtener los niños" });
+  }
+});
+
+router.get("/sin-asignar", verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const ninos = await Nino.find({
+      $or: [{ docente: null }, { terapeuta: null }],
+    }).sort({ createdAt: 1 });
+
+    const ninosLegibles = ninos.map((nino) => ({
+      id: nino._id,
+      nombres: desencriptar(nino.nombres),
+      apellidos: desencriptar(nino.apellidos),
+      grado: nino.grado,
+      colegio: nino.colegio,
+      docente: nino.docente,
+      terapeuta: nino.terapeuta,
+    }));
+
+    res.status(200).json({ ninos: ninosLegibles });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al listar los niños sin asignar" });
   }
 });
 
