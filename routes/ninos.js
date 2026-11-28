@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { body, validationResult } = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 const Nino = require("../models/Nino");
 const Acudiente = require("../models/Acudiente");
+const Usuario = require("../models/Usuario");
 const verificarToken = require("../middlewares/verificarToken");
 const soloFamilia = require("../middlewares/soloFamilia");
 const soloAdmin = require("../middlewares/soloAdmin");
@@ -153,5 +154,66 @@ router.get("/sin-asignar", verificarToken, soloAdmin, async (req, res) => {
     res.status(500).json({ mensaje: "Error al listar los niños sin asignar" });
   }
 });
+
+const validarAsignacion = [
+  param("id").isMongoId().withMessage("El id del niño no es válido"),
+  body("docenteId").isMongoId().withMessage("El id del docente no es válido"),
+  body("terapeutaId").isMongoId().withMessage("El id del terapeuta no es válido"),
+];
+
+router.put(
+  "/:id/asignar",
+  verificarToken,
+  soloAdmin,
+  validarAsignacion,
+  async (req, res) => {
+    const errores = validationResult(req);
+    if (!errores.isEmpty()) {
+      return res.status(400).json({ errores: errores.array() });
+    }
+
+    try {
+      const nino = await Nino.findById(req.params.id);
+      if (!nino) {
+        return res.status(404).json({ mensaje: "Niño no encontrado" });
+      }
+
+      const { docenteId, terapeutaId } = req.body;
+
+      const docente = await Usuario.findById(docenteId);
+      if (!docente || docente.rol !== "docente" || docente.estadoCuenta !== "activa") {
+        return res
+          .status(400)
+          .json({ mensaje: "El docente no existe, no tiene rol de docente o su cuenta no está activa" });
+      }
+
+      const terapeuta = await Usuario.findById(terapeutaId);
+      if (
+        !terapeuta ||
+        terapeuta.rol !== "terapeuta" ||
+        terapeuta.estadoCuenta !== "activa"
+      ) {
+        return res
+          .status(400)
+          .json({ mensaje: "El terapeuta no existe, no tiene rol de terapeuta o su cuenta no está activa" });
+      }
+
+      nino.docente = docente._id;
+      nino.terapeuta = terapeuta._id;
+      await nino.save();
+
+      res.status(200).json({
+        mensaje: "Docente y terapeuta asignados correctamente",
+        nino: {
+          id: nino._id,
+          docente: { id: docente._id, nombre: docente.nombre },
+          terapeuta: { id: terapeuta._id, nombre: terapeuta.nombre },
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ mensaje: "Error al asignar docente y terapeuta" });
+    }
+  },
+);
 
 module.exports = router;
